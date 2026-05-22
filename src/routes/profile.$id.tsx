@@ -38,8 +38,8 @@ function ProfilePage() {
     setProfile(data as Profile);
     setName(data?.display_name || "");
     setBio(data?.bio || "");
-    const { data: rs } = await supabase.from("user_roles").select("role").eq("user_id", id);
-    setRoles((rs || []).map((r: any) => r.role));
+    const { data: rs } = await supabase.from("user_roles").select("role_name").eq("user_id", id);
+    setRoles((rs || []).map((r: any) => r.role_name));
     const { data: ps } = await supabase
       .from("projects")
       .select("id, title, description, status, created_at, media_url, profiles(display_name), project_tags(tags(name, slug))")

@@ -36,10 +36,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadExtras = async (uid: string) => {
     const [{ data: prof }, { data: rs }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", uid),
+      supabase.from("user_roles").select("role_name").eq("user_id", uid),
     ]);
     setProfile(prof as Profile | null);
-    setRoles(((rs as { role: Role }[]) || []).map((r) => r.role));
+    setRoles(((rs as { role_name: Role }[]) || []).map((r) => r.role_name));
   };
 
   const refresh = async () => {

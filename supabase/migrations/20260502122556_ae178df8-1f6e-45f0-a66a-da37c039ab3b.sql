@@ -9,3 +9,6 @@ ALTER TABLE public.comments ADD CONSTRAINT comments_author_id_fkey
 ALTER TABLE public.applications DROP CONSTRAINT applications_applicant_id_fkey;
 ALTER TABLE public.applications ADD CONSTRAINT applications_applicant_id_fkey
   FOREIGN KEY (applicant_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- Rename role column to role_name in user_roles
+ALTER TABLE public.user_roles RENAME COLUMN role TO role_name;

@@ -201,9 +201,9 @@ function Users() {
   const load = async () => {
     const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(100);
     setItems(data || []);
-    const { data: rs } = await supabase.from("user_roles").select("user_id, role");
+    const { data: rs } = await supabase.from("user_roles").select("user_id, role_name");
     const map: Record<string, string[]> = {};
-    (rs || []).forEach((r: any) => { (map[r.user_id] ||= []).push(r.role); });
+    (rs || []).forEach((r: any) => { (map[r.user_id] ||= []).push(r.role_name); });
     setRoles(map);
   };
   useEffect(() => { load(); }, []);
@@ -215,11 +215,11 @@ function Users() {
   };
 
   const grantMod = async (id: string) => {
-    await supabase.from("user_roles").insert({ user_id: id, role: "moderator" });
+    await supabase.from("user_roles").insert({ user_id: id, role_name: "moderator" });
     toast.success("Granted moderator"); load();
   };
   const revokeMod = async (id: string) => {
-    await supabase.from("user_roles").delete().eq("user_id", id).eq("role", "moderator");
+    await supabase.from("user_roles").delete().eq("user_id", id).eq("role_name", "moderator");
     load();
   };
 

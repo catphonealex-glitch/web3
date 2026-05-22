@@ -21,7 +21,7 @@ function hostLabel(u: string): string {
 }
 
 interface Line {
-  time: number | null; // seconds, null = unknown (will be auto-distributed)
+  time: number | null; 
   text: string;
 }
 
