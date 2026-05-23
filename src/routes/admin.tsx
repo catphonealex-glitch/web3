@@ -209,10 +209,12 @@ function Users() {
   useEffect(() => { load(); }, []);
 
   const ban = async (id: string, banned: boolean) => {
+    // Ban = revoke staff roles via DB trigger.
     await supabase.from("profiles").update({ is_banned: banned }).eq("id", id);
     toast.success(banned ? "User banned" : "User unbanned");
     load();
   };
+
 
   const grantMod = async (id: string) => {
     await supabase.from("user_roles").insert({ user_id: id, role_name: "moderator" });
