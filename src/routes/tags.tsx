@@ -25,7 +25,7 @@ function TagsPage() {
   return (
     <main className="max-w-4xl mx-auto px-4 py-10">
       <p className="small-caps text-xs text-muted-foreground">The Index</p>
-      <h1 className="font-display text-4xl md:text-5xl mt-1">Tags</h1>
+      <h1 className="font-display text-3xl sm:text-4xl md:text-5xl mt-1">Tags</h1>
       <div className="rule-double mt-3 mb-5" />
       <p className="text-muted-foreground mb-6 font-serif-italic">Browse projects by topic. Tags are created on the fly when posting.</p>
       {tags.length === 0 ? (

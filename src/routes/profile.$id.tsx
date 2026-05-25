@@ -93,8 +93,8 @@ function ProfilePage() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-10">
-      <div className="paper rounded-sm p-6 md:p-8">
-        <div className="flex items-start gap-5">
+      <div className="paper rounded-sm p-4 sm:p-6 md:p-8">
+        <div className="flex items-start gap-3 sm:gap-5 flex-col sm:flex-row">
           <div className="h-20 w-20 rounded-2xl bg-cta flex items-center justify-center text-3xl font-bold text-primary-foreground shrink-0">
             {profile.display_name[0]?.toUpperCase()}
           </div>
@@ -106,7 +106,7 @@ function ProfilePage() {
                 className="text-2xl font-bold bg-input border border-border rounded-lg px-3 py-1 w-full max-w-sm"
               />
             ) : (
-              <h1 className="font-display text-3xl md:text-4xl flex items-center gap-2 flex-wrap">
+              <h1 className="font-display text-2xl sm:text-3xl md:text-4xl flex items-center gap-2 flex-wrap">
                 {profile.display_name}
                 {roles.includes("admin") && <span className="text-xs px-2 py-0.5 rounded-full bg-cta text-primary-foreground small-caps">Admin</span>}
                 {roles.includes("moderator") && <span className="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent small-caps">Mod</span>}

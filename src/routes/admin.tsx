@@ -120,23 +120,38 @@ function Reports() {
 function Projects() {
   const [items, setItems] = useState<any[]>([]);
   const load = async () => {
-    const { data } = await supabase.from("projects").select("id, title, status, created_at, profiles(display_name)").order("created_at", { ascending: false }).limit(100);
+    const { data } = await supabase.from("projects").select("id, title, status, hidden, created_at, profiles(display_name)").order("created_at", { ascending: false }).limit(100);
     setItems(data || []);
   };
   useEffect(() => { load(); }, []);
+  
+  const toggleStatus = async (id: string, current: string) => {
+    const statuses = ["open", "closed", "hidden"];
+    const nextIndex = (statuses.indexOf(current) + 1) % statuses.length;
+    const nextStatus = statuses[nextIndex];
+    const updateData = nextStatus === "hidden" ? { status: "closed", hidden: true } : { status: nextStatus, hidden: false };
+    await supabase.from("projects").update(updateData).eq("id", id);
+    toast.success(`Status changed to ${nextStatus}`);
+    load();
+  };
+  
   const del = async (id: string) => {
     if (!confirm("Delete project?")) return;
     await supabase.from("projects").delete().eq("id", id);
     toast.success("Deleted"); load();
   };
+  
   return (
     <div className="bg-card border border-border rounded-xl divide-y divide-border">
       {items.map((p) => (
         <div key={p.id} className="p-3 flex items-center justify-between gap-3">
           <Link to="/projects/$id" params={{ id: p.id }} className="flex-1 min-w-0">
             <div className="font-medium truncate hover:text-primary">{p.title}</div>
-            <div className="text-xs text-muted-foreground">{p.profiles?.display_name} · {p.status}</div>
+            <div className="text-xs text-muted-foreground">{p.profiles?.display_name} · {p.hidden ? "hidden" : p.status}</div>
           </Link>
+          <button onClick={() => toggleStatus(p.id, p.hidden ? "hidden" : p.status)} className="px-2.5 py-1.5 rounded-lg border border-border text-xs hover:bg-secondary">
+            {p.hidden ? "Hidden" : p.status}
+          </button>
           <button onClick={() => del(p.id)} className="p-2 rounded-lg hover:bg-destructive/20 text-destructive"><Trash2 className="h-4 w-4" /></button>
         </div>
       ))}

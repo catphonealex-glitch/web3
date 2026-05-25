@@ -119,11 +119,11 @@ function EditProject() {
     <main className="max-w-2xl mx-auto px-4 py-10">
       <Link to="/projects/$id" params={{ id }} className="text-xs text-muted-foreground hover:text-foreground small-caps">← Back to project</Link>
       <p className="small-caps text-xs text-muted-foreground mt-3">Revise Notice</p>
-      <h1 className="font-display text-4xl mt-1">Edit project</h1>
+      <h1 className="font-display text-3xl sm:text-4xl mt-1">Edit project</h1>
       <p className="text-sm text-muted-foreground mt-1">Update details, swap the video or script, and re-tag — changes save in place.</p>
       <div className="rule-double mt-3 mb-6" />
 
-      <form onSubmit={submit} className="space-y-5 paper rounded-sm p-6">
+      <form onSubmit={submit} className="space-y-5 paper rounded-sm p-4 sm:p-6">
         <Field label="Title">
           <input
             value={title}
@@ -144,19 +144,20 @@ function EditProject() {
         </Field>
 
         <Field label="Status">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {(["open", "closed"] as const).map((s) => (
               <button
                 type="button"
                 key={s}
                 onClick={() => setStatus(s)}
-                className={`py-2.5 rounded-lg border text-sm font-medium capitalize transition ${
+                className={`py-2.5 rounded-lg border text-xs sm:text-sm font-medium capitalize transition ${
                   status === s
                     ? "bg-cta text-primary-foreground border-transparent shadow-neon"
                     : "bg-input border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
                 }`}
               >
-                {s === "open" ? "Open — accepting auditions" : "Closed — preview only"}
+                <span className="hidden sm:inline">{s === "open" ? "Open — accepting auditions" : "Closed — preview only"}</span>
+                <span className="sm:hidden">{s === "open" ? "Open" : "Closed"}</span>
               </button>
             ))}
           </div>
@@ -244,7 +245,7 @@ function EditProject() {
           >
             Cancel
           </Link>
-          <button disabled={busy} className="flex-1 py-3 rounded-lg bg-cta text-primary-foreground font-medium shadow-neon disabled:opacity-50">
+          <button type="submit" disabled={busy} className="flex-1 py-3 rounded-lg bg-cta text-primary-foreground font-medium shadow-neon disabled:opacity-50">
             {busy ? "Saving…" : "Save changes"}
           </button>
         </div>
