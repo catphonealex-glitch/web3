@@ -1,5 +1,4 @@
 
-
 begin;
 
 -- projects(id) <- project_tags.project_id
