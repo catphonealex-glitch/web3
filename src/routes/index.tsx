@@ -142,19 +142,19 @@ function Index() {
           <div className="small-caps text-xs text-primary font-semibold mb-3 flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5" /> {t("home.kicker")}
           </div>
-          <h1 className="font-display text-5xl md:text-7xl leading-[1.0] mb-2">
+          <h1 className="font-display text-3xl sm:text-5xl md:text-7xl leading-[1.0] mb-2">
             {t("home.title1")}
           </h1>
-          <h1 className="font-display font-serif-italic italic text-5xl md:text-7xl leading-[1.0] mb-5 text-gradient">
+          <h1 className="font-display font-serif-italic italic text-3xl sm:text-5xl md:text-7xl leading-[1.0] mb-5 text-gradient">
             {t("home.title2")}
           </h1>
           <div className="rule-double w-24 mb-5" />
-          <p className="text-muted-foreground text-lg mb-6 max-w-lg leading-relaxed">
+          <p className="text-muted-foreground text-base sm:text-lg mb-6 max-w-lg leading-relaxed">
             {t("home.lead")}
           </p>
           <form
             onSubmit={(e) => { e.preventDefault(); navigate({ search: { q: search, tag } }); }}
-            className="flex gap-2"
+            className="flex flex-col sm:flex-row gap-2"
           >
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -165,7 +165,7 @@ function Index() {
                 className="w-full bg-card border border-border rounded-lg pl-10 pr-4 py-3 outline-none focus:border-primary transition"
               />
             </div>
-            <button className="px-5 py-3 rounded-lg bg-cta text-primary-foreground font-medium shadow-neon">{t("home.search")}</button>
+            <button className="px-5 py-3 rounded-lg bg-cta text-primary-foreground font-medium shadow-neon whitespace-nowrap">{t("home.search")}</button>
           </form>
         </div>
         <div className="relative grid grid-cols-3 gap-3 mt-8 max-w-md">
@@ -216,7 +216,7 @@ function Index() {
         )}
         {(!q || !matchMode) && <div className="mb-4" />}
         {loading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-44 rounded-2xl bg-card border border-border animate-pulse" />
             ))}
@@ -230,7 +230,7 @@ function Index() {
             </Link>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map((p) => (
               <ProjectCard
                 key={p.id}

@@ -83,10 +83,10 @@ function NewProject() {
     <main className="max-w-2xl mx-auto px-4 py-10">
       <Link to="/" className="text-xs text-muted-foreground hover:text-foreground small-caps">← Back</Link>
       <p className="small-caps text-xs text-muted-foreground mt-3">New Notice</p>
-      <h1 className="font-display text-4xl mt-1">Start a dubbing project</h1>
+      <h1 className="font-display text-3xl sm:text-4xl mt-1">Start a dubbing project</h1>
       <div className="rule-double mt-3 mb-6" />
 
-      <form onSubmit={submit} className="space-y-5 paper rounded-sm p-6">
+      <form onSubmit={submit} className="space-y-5 paper rounded-sm p-4 sm:p-6">
         <Field label="Title">
           <input
             value={title}
@@ -109,19 +109,20 @@ function NewProject() {
         </Field>
 
         <Field label="Status">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {(["open", "closed"] as const).map((s) => (
               <button
                 type="button"
                 key={s}
                 onClick={() => setStatus(s)}
-                className={`py-2.5 rounded-lg border text-sm font-medium capitalize transition ${
+                className={`py-2.5 rounded-lg border text-xs sm:text-sm font-medium capitalize transition ${
                   status === s
                     ? "bg-cta text-primary-foreground border-transparent shadow-neon"
                     : "bg-input border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
                 }`}
               >
-                {s === "open" ? "Open — accepting auditions" : "Closed — preview only"}
+                <span className="hidden sm:inline">{s === "open" ? "Open — accepting auditions" : "Closed — preview only"}</span>
+                <span className="sm:hidden">{s === "open" ? "Open" : "Closed"}</span>
               </button>
             ))}
           </div>
@@ -197,7 +198,7 @@ function NewProject() {
           )}
         </Field>
 
-        <button disabled={busy} className="w-full py-3 rounded-lg bg-cta text-primary-foreground font-medium shadow-neon disabled:opacity-50">
+        <button type="submit" disabled={busy} className="w-full py-3 rounded-lg bg-cta text-primary-foreground font-medium shadow-neon disabled:opacity-50">
           {busy ? "Posting…" : "Post project"}
         </button>
       </form>
