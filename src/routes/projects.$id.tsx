@@ -22,6 +22,7 @@ interface Project {
   media_url: string | null;
   text_url: string | null;
   author_id: string;
+  hidden?: boolean;
   profiles: { display_name: string; avatar_url: string | null } | null;
   project_tags: { tags: { name: string; slug: string } }[];
 }
@@ -172,9 +173,16 @@ function ProjectPage() {
 
 
   if (loading) return <div className="max-w-4xl mx-auto p-10 text-muted-foreground">Loading…</div>;
-  if (!project) return <div className="max-w-4xl mx-auto p-10">Not found.</div>;
+  if (!project) return <div className="max-w-4xl mx-auto p-10 text-muted-foreground">Project not found or access denied.</div>;
 
-  const canEditProject = isStaff || (user && project && user.id === project.author_id);
+  const canEditProject = isOwner || (isStaff && !isOwner);
+  const canSeeProject = isOwner || isStaff || !project.hidden;
+
+  // If project is hidden and user can't see it, show access denied
+  if (project.hidden && !isOwner && !isStaff) {
+    return <div className="max-w-4xl mx-auto p-10 text-muted-foreground">Project not found or access denied.</div>;
+  }
+
 
 
   return (
@@ -184,9 +192,14 @@ function ProjectPage() {
       <article className="mt-4 paper rounded-sm p-6 md:p-8">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <span className={`text-xs font-semibold small-caps px-2 py-0.5 rounded-full ${project.status === "open" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"}`}>
-              {project.status}
-            </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`text-xs font-semibold small-caps px-2 py-0.5 rounded-full ${project.status === "open" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"}`}>
+                {project.status}
+              </span>
+              {isStaff && project.hidden && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground small-caps">Hidden</span>
+              )}
+            </div>
             <h1 className="font-display text-3xl md:text-5xl mt-2 leading-tight">{project.title}</h1>
             <div className="rule-double mt-3 mb-3" />
             <p className="text-xs text-muted-foreground small-caps">
