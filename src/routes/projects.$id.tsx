@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
 import { toast } from "sonner";
-import { FileText, Trash2, Mic, Send, Flag, Lock, Pencil } from "lucide-react";
+import { FileText, Trash2, Mic, Send, Flag, Lock, Pencil, Upload } from "lucide-react";
+
 import { KaraokeReader } from "@/components/KaraokeReader";
 import { ReportDialog, type ReportTarget } from "@/components/ReportDialog";
 
@@ -72,7 +73,15 @@ function ProjectPage() {
       .select("*, profiles(display_name)")
       .eq("project_id", id)
       .order("created_at", { ascending: true });
-    setComments((cs as unknown as Comment[]) || []);
+
+    const canSeeHiddenComments = isStaff;
+    setComments(
+      ((cs as unknown as Comment[]) || []).filter(
+        (c: any) => !c.profiles?.hidden || canSeeHiddenComments,
+      ),
+    );
+
+
     if (user) {
       const { data: as } = await supabase
         .from("applications")
@@ -147,6 +156,9 @@ function ProjectPage() {
   if (loading) return <div className="max-w-4xl mx-auto p-10 text-muted-foreground">Loading…</div>;
   if (!project) return <div className="max-w-4xl mx-auto p-10">Not found.</div>;
 
+  const canEditProject = isStaff || (user && project && user.id === project.author_id);
+
+
   return (
     <main className="max-w-6xl mx-auto px-4 py-8">
       <Link to="/" className="text-xs text-muted-foreground hover:text-foreground small-caps">← All projects</Link>
@@ -177,7 +189,9 @@ function ProjectPage() {
                       params={{ id: project.id }}
                       className="p-2 rounded-lg border border-border hover:bg-secondary"
                       title="Edit project"
+                      prefetch="intent"
                     >
+
                       <Pencil className="h-4 w-4" />
                     </Link>
                     <button onClick={toggleStatus} className="p-2 rounded-lg border border-border hover:bg-secondary" title="Toggle status">
@@ -243,12 +257,19 @@ function ProjectPage() {
         {user && !isOwner && project.status === "open" && (
           <form onSubmit={submitApplication} className="paper rounded-sm p-5 mb-4 space-y-3">
             <p className="text-sm text-muted-foreground">Submit your voice demo for the director.</p>
-            <input
-              type="file"
-              accept="audio/*,video/*"
-              onChange={(e) => setDemoFile(e.target.files?.[0] ?? null)}
-              className="text-sm file:mr-3 file:py-2 file:px-3 file:rounded-lg file:bg-cta file:text-primary-foreground file:border-0 file:font-medium"
-            />
+            <label className="block">
+              <span className="sr-only">Upload voice demo</span>
+              <div className="flex items-center gap-3">
+                <Upload className="h-4 w-4 text-primary" />
+                <input
+                  type="file"
+                  accept="audio/*,video/*"
+                  onChange={(e) => setDemoFile(e.target.files?.[0] ?? null)}
+                  className="flex-1 text-sm file:mr-3 file:py-2 file:px-3 file:rounded-lg file:bg-cta file:text-primary-foreground file:border-0 file:font-medium"
+                />
+              </div>
+            </label>
+
             <textarea
               value={appNote}
               onChange={(e) => setAppNote(e.target.value)}

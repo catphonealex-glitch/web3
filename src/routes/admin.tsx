@@ -209,14 +209,44 @@ function Users() {
   useEffect(() => { load(); }, []);
 
   const ban = async (id: string, banned: boolean) => {
-    // Ban = revoke staff roles via DB trigger.
     await supabase.from("profiles").update({ is_banned: banned }).eq("id", id);
     toast.success(banned ? "User banned" : "User unbanned");
     load();
   };
 
 
+
+
+  const hideProfile = async (id: string, hidden: boolean) => {
+    await supabase.from("profiles").update({ hidden }).eq("id", id);
+
+    toast.success(hidden ? "Profile hidden" : "Profile unhidden");
+    load();
+  };
+
+
+
+  const hideProjects = async (id: string, hidden: boolean) => {
+
+    await supabase.from("projects").update({ hidden }).eq("author_id", id);
+  };
+
+
+
+
+  const setHiddenState = async (id: string, hidden: boolean) => {
+
+    await hideProfile(id, hidden);
+    await hideProjects(id, hidden);
+    load();
+  };
+
+
+
+
+
   const grantMod = async (id: string) => {
+
     await supabase.from("user_roles").insert({ user_id: id, role_name: "moderator" });
     toast.success("Granted moderator"); load();
   };
@@ -237,6 +267,8 @@ function Users() {
                 {r.includes("admin") && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cta text-primary-foreground">A</span>}
                 {r.includes("moderator") && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/20 text-accent">M</span>}
                 {u.is_banned && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-destructive/20 text-destructive">Banned</span>}
+                {u.hidden && !u.is_banned && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">Hidden</span>}
+
               </div>
               <div className="text-xs text-muted-foreground">Joined {new Date(u.created_at).toLocaleDateString()}</div>
             </Link>
@@ -251,6 +283,16 @@ function Users() {
                   <Ban className="h-3.5 w-3.5" /> {u.is_banned ? "Unban" : "Ban"}
                 </button>
               )}
+
+              {isAdmin && (
+                <button
+                  onClick={() => setHiddenState(u.id, !(u.hidden ?? false))}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs inline-flex items-center gap-1 ${u.hidden ? "border border-border hover:bg-secondary" : "bg-cta text-primary-foreground"}`}
+                >
+                  {u.hidden ? "Unhide" : "Hide"}
+                </button>
+              )}
+
             </div>
           </div>
         );

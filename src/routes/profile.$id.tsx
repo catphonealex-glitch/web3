@@ -35,17 +35,45 @@ function ProfilePage() {
 
   const load = async () => {
     const { data } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
+    if (!data) {
+      setProfile(null);
+      return;
+    }
+
+    const { data: viewedRolesRaw } = await supabase.from("user_roles").select("role_name").eq("user_id", id);
+    const viewedUserRoles = (viewedRolesRaw || []).map((r: any) => r.role_name);
+    setRoles(viewedUserRoles);
+
+    const viewerIsOwner = !!user && user.id === id;
+
+    const { data: viewerRolesRaw } = await supabase
+      .from("user_roles")
+      .select("role_name")
+      .eq("user_id", user?.id)
+      .maybeSingle();
+
+    const viewerRoles = user ? ((viewerRolesRaw ? [viewerRolesRaw] : []) as any[]).map((r) => r.role_name) : [];
+
+    const viewerIsPrivileged = user && (viewerRoles.includes("admin") || viewerRoles.includes("moderator"));
+
+    const canSeeHidden = viewerIsOwner || viewerIsPrivileged;
+
+    if (data.hidden && !canSeeHidden) {
+      setProfile(null);
+      return;
+    }
+
     setProfile(data as Profile);
     setName(data?.display_name || "");
     setBio(data?.bio || "");
-    const { data: rs } = await supabase.from("user_roles").select("role_name").eq("user_id", id);
-    setRoles((rs || []).map((r: any) => r.role_name));
+
     const { data: ps } = await supabase
       .from("projects")
       .select("id, title, description, status, created_at, media_url, profiles(display_name), project_tags(tags(name, slug))")
       .eq("author_id", id)
       .order("created_at", { ascending: false });
-    setProjects(ps || []);
+
+    setProjects((ps || []).filter((p: any) => !(p.hidden && !canSeeHidden)));
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
@@ -59,7 +87,8 @@ function ProfilePage() {
     refresh();
   };
 
-  if (!profile) return <div className="max-w-4xl mx-auto p-10 text-muted-foreground">Loading…</div>;
+  if (!profile) return <div className="max-w-4xl mx-auto p-10 text-muted-foreground">User not found</div>;
+
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-10">
