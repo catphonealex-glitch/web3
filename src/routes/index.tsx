@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { ProjectCard } from "@/components/ProjectCard";
 import { useI18n } from "@/lib/i18n";
 import { Search, Sparkles, Mic2, Film, Users } from "lucide-react";
@@ -21,6 +22,7 @@ interface ProjectRow {
   created_at: string;
   media_url: string | null;
   author_id: string;
+  hidden?: boolean;
   profiles: { display_name: string } | null;
   project_tags: { tags: { name: string; slug: string } }[];
 }
@@ -43,6 +45,7 @@ function distance(a: string, b: string): number {
 
 function Index() {
   const { t } = useI18n();
+  const { isStaff } = useAuth();
   const { q, tag } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [search, setSearch] = useState(q);
@@ -66,11 +69,14 @@ function Index() {
       // Always fetch a working set; we'll filter client-side for tiered matching
       const { data } = await supabase
         .from("projects")
-        .select("id, title, description, status, created_at, media_url, author_id, profiles(display_name), project_tags(tags(name, slug))")
+        .select("id, title, description, status, created_at, media_url, author_id, hidden, profiles(display_name), project_tags(tags(name, slug))")
         .order("created_at", { ascending: false })
         .limit(200);
 
       let all = (data as unknown as ProjectRow[]) || [];
+      // Filter hidden projects - only show if user is staff
+      all = all.filter((p) => !p.hidden || isStaff);
+      
       if (tag) all = all.filter((p) => p.project_tags.some((pt) => pt.tags?.slug === tag));
 
       let list = all;

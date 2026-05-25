@@ -214,7 +214,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function FileSlot({ label, icon, accept, file, onChange }: { label: string; icon: React.ReactNode; accept: string; file: File | null; onChange: (f: File | null) => void }) {
+function FileSlot({ label, icon, accept, file, onChange, existing, onClearExisting }: { label: string; icon: React.ReactNode; accept: string; file: File | null; onChange: (f: File | null) => void; existing?: string | null; onClearExisting?: () => void }) {
   return (
     <label className="block">
       <span className="text-xs text-muted-foreground small-caps inline-flex items-center gap-1.5">{icon}{label}</span>
@@ -223,6 +223,13 @@ function FileSlot({ label, icon, accept, file, onChange }: { label: string; icon
           <div className="bg-input border border-border rounded-lg px-3 py-2.5 flex items-center justify-between text-sm">
             <span className="truncate">{file.name}</span>
             <button type="button" onClick={() => onChange(null)} className="text-muted-foreground hover:text-destructive">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ) : existing ? (
+          <div className="bg-input border border-border rounded-lg px-3 py-2.5 flex items-center justify-between text-sm text-muted-foreground">
+            <span className="truncate">{existing}</span>
+            <button type="button" onClick={onClearExisting} className="text-muted-foreground hover:text-destructive">
               <X className="h-4 w-4" />
             </button>
           </div>

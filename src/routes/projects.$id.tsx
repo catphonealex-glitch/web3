@@ -67,31 +67,49 @@ function ProjectPage() {
       .select("*, profiles(display_name, avatar_url), project_tags(tags(name, slug))")
       .eq("id", id)
       .maybeSingle();
+    
+    if (!data) {
+      setProject(null);
+      setLoading(false);
+      return;
+    }
+
+    // Check if current user can see this project
+    const viewerIsOwner = user?.id === data.author_id;
+    const viewerIsStaff = isStaff;
+    
+    if (data.hidden && !viewerIsOwner && !viewerIsStaff) {
+      setProject(null);
+      setLoading(false);
+      return;
+    }
+
     setProject(data as unknown as Project);
+
     const { data: cs } = await supabase
       .from("comments")
-      .select("*, profiles(display_name)")
+      .select("*, profiles(display_name, hidden)")
       .eq("project_id", id)
       .order("created_at", { ascending: true });
 
-    const canSeeHiddenComments = isStaff;
+    const canSeeHiddenContent = user && (isStaff || viewerIsOwner);
     setComments(
       ((cs as unknown as Comment[]) || []).filter(
-        (c: any) => !c.profiles?.hidden || canSeeHiddenComments,
+        (c: any) => !c.profiles?.hidden || canSeeHiddenContent,
       ),
     );
-
 
     if (user) {
       const { data: as } = await supabase
         .from("applications")
-        .select("*, profiles(display_name)")
+        .select("*, profiles(display_name, hidden)")
         .eq("project_id", id)
         .order("created_at", { ascending: false });
       setApps((as as unknown as Application[]) || []);
     }
     setLoading(false);
   };
+
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [id, user?.id]);
 
@@ -288,9 +306,14 @@ function ProjectPage() {
             {apps.map((a) => (
               <div key={a.id} className="paper rounded-sm p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <Link to="/profile/$id" params={{ id: a.applicant_id }} className="font-medium hover:text-primary">
-                    {a.profiles?.display_name}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link to="/profile/$id" params={{ id: a.applicant_id }} className="font-medium hover:text-primary">
+                      {a.profiles?.display_name}
+                    </Link>
+                    {isStaff && a.profiles?.hidden && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground small-caps">Hidden</span>
+                    )}
+                  </div>
                   <span className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString()}</span>
                 </div>
                 {a.note && <p className="text-sm text-muted-foreground mb-2">{a.note}</p>}
@@ -329,9 +352,14 @@ function ProjectPage() {
           {comments.map((c) => (
             <div key={c.id} className="paper rounded-sm p-4">
               <div className="flex items-center justify-between mb-1">
-                <Link to="/profile/$id" params={{ id: c.author_id }} className="text-sm font-medium hover:text-primary">
-                  {c.profiles?.display_name}
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link to="/profile/$id" params={{ id: c.author_id }} className="text-sm font-medium hover:text-primary">
+                    {c.profiles?.display_name}
+                  </Link>
+                  {isStaff && c.profiles?.hidden && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground small-caps">Hidden</span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleString()}</span>
                   {(c.author_id === user?.id || isStaff) && (

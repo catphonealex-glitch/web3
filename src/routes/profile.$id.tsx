@@ -17,12 +17,13 @@ interface Profile {
   bio: string;
   avatar_url: string | null;
   is_banned: boolean;
+  hidden?: boolean;
   created_at: string;
 }
 
 function ProfilePage() {
   const { id } = Route.useParams();
-  const { user, refresh } = useAuth();
+  const { user, refresh, isStaff } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [projects, setProjects] = useState<any[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
@@ -110,6 +111,7 @@ function ProfilePage() {
                 {roles.includes("admin") && <span className="text-xs px-2 py-0.5 rounded-full bg-cta text-primary-foreground small-caps">Admin</span>}
                 {roles.includes("moderator") && <span className="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent small-caps">Mod</span>}
                 {profile.is_banned && <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/20 text-destructive small-caps">Banned</span>}
+                {isStaff && profile.hidden && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground small-caps">Hidden</span>}
               </h1>
             )}
             <p className="text-xs text-muted-foreground mt-1 small-caps">Joined {new Date(profile.created_at).toLocaleDateString()}</p>
