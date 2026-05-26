@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { uploadFile, slugify } from "@/lib/storage";
 import { toast } from "sonner";
 import { Upload, X, FileText, Video, Plus } from "lucide-react";
+import { LangSwitcher } from "@/components/LangSwitcher";
 
 export const Route = createFileRoute("/projects/new")({
   component: NewProject,
@@ -81,9 +82,14 @@ function NewProject() {
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-10">
-      <Link to="/" className="text-xs text-muted-foreground hover:text-foreground small-caps">← Back</Link>
-      <p className="small-caps text-xs text-muted-foreground mt-3">New Notice</p>
-      <h1 className="font-display text-4xl mt-1">Start a dubbing project</h1>
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <Link to="/" className="text-xs text-muted-foreground hover:text-foreground small-caps">← Back</Link>
+          <p className="small-caps text-xs text-muted-foreground mt-3">New Notice</p>
+          <h1 className="font-display text-4xl mt-1">Start a dubbing project</h1>
+        </div>
+        <LangSwitcher />
+      </div>
       <div className="rule-double mt-3 mb-6" />
 
       <form onSubmit={submit} className="space-y-5 paper rounded-sm p-6">

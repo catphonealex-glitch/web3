@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { uploadFile, slugify } from "@/lib/storage";
 import { toast } from "sonner";
 import { Upload, X, FileText, Video, Plus } from "lucide-react";
+import { LangSwitcher } from "@/components/LangSwitcher";
 
 export const Route = createFileRoute("/projects/$id/edit")({
   component: EditProject,
@@ -117,10 +118,15 @@ function EditProject() {
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-10">
-      <Link to="/projects/$id" params={{ id }} className="text-xs text-muted-foreground hover:text-foreground small-caps">← Back to project</Link>
-      <p className="small-caps text-xs text-muted-foreground mt-3">Revise Notice</p>
-      <h1 className="font-display text-4xl mt-1">Edit project</h1>
-      <p className="text-sm text-muted-foreground mt-1">Update details, swap the video or script, and re-tag — changes save in place.</p>
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <Link to="/projects/$id" params={{ id }} className="text-xs text-muted-foreground hover:text-foreground small-caps">← Back to project</Link>
+          <p className="small-caps text-xs text-muted-foreground mt-3">Revise Notice</p>
+          <h1 className="font-display text-4xl mt-1">Edit project</h1>
+          <p className="text-sm text-muted-foreground mt-1">Update details, swap the video or script, and re-tag — changes save in place.</p>
+        </div>
+        <LangSwitcher />
+      </div>
       <div className="rule-double mt-3 mb-6" />
 
       <form onSubmit={submit} className="space-y-5 paper rounded-sm p-6">
@@ -285,15 +291,17 @@ function FileSlot({
             </button>
           </div>
         ) : existing ? (
-          <div className="bg-input border border-border rounded-lg px-3 py-2.5 flex items-center justify-between text-sm">
-            <span className="truncate text-muted-foreground">{existing}</span>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] small-caps text-muted-foreground">Upload to replace</span>
-              {onClearExisting && (
-                <button type="button" onClick={onClearExisting} className="text-muted-foreground hover:text-destructive" title="Remove">
-                  <X className="h-4 w-4" />
-                </button>
-              )}
+          <div className="bg-input border border-border rounded-lg px-3 py-2.5 text-sm cursor-pointer hover:border-primary transition relative">
+            <div className="flex items-center justify-between">
+              <span className="truncate text-muted-foreground">{existing}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] small-caps text-muted-foreground">Upload to replace</span>
+                {onClearExisting && (
+                  <button type="button" onClick={(e) => { e.stopPropagation(); onClearExisting(); }} className="text-muted-foreground hover:text-destructive" title="Remove">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
             <input
               type="file"
