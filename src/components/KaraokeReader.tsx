@@ -33,12 +33,16 @@ interface Props {
 // Parse LRC-style: [mm:ss.xx] line text
 function parseScript(raw: string): { lines: Line[]; hasTimestamps: boolean } {
   const lrcRe = /\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?\]/g;
+  const metadataRe = /^\[([a-z]+):/i;
   const lines: Line[] = [];
   let hasTimestamps = false;
 
   for (const rawLine of raw.split(/\r?\n/)) {
     const line = rawLine.trim();
     if (!line) continue;
+
+    // Skip metadata lines (e.g., [length:...], [ve:...], [ar:...])
+    if (metadataRe.test(line)) continue;
 
     const matches = [...line.matchAll(lrcRe)];
     if (matches.length > 0) {
@@ -142,15 +146,22 @@ export function KaraokeReader({ textUrl, videoRef }: Props) {
 
   // Auto-scroll active line into view
   useEffect(() => {
-    if (activeIdx < 0) return;
+    if (activeIdx < 0 || !containerRef.current) return;
     const el = lineRefs.current[activeIdx];
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (!el) return;
+    
+    // Scroll so the active line is positioned 1/4 from the top
+    // This allows users to see the current line plus upcoming lines
+    const scrollTop = el.offsetTop - (containerRef.current.clientHeight * 0.25);
+    containerRef.current.scrollTop = Math.max(0, scrollTop);
   }, [activeIdx]);
 
   const seek = (t: number) => {
     const v = videoRef.current;
     if (!v) return;
-    v.currentTime = t;
+    // Ensure time is within valid range
+    const seekTime = Math.max(0, Math.min(t, v.duration || t));
+    v.currentTime = seekTime;
     if (v.paused) v.play().catch(() => {});
   };
 
@@ -221,6 +232,13 @@ export function KaraokeReader({ textUrl, videoRef }: Props) {
           {timedLines.map((l, i) => {
             const isActive = i === activeIdx;
             const isPast = i < activeIdx;
+            // Format time for display (mm:ss.xx)
+            const formatTime = (t: number | null) => {
+              if (t === null) return "";
+              const min = Math.floor(t / 60);
+              const sec = t % 60;
+              return `[${String(min).padStart(2, "0")}:${String(Math.floor(sec)).padStart(2, "0")}.${String(Math.round((sec % 1) * 100)).padStart(2, "0")}]`;
+            };
             return (
               <button
                 key={i}
@@ -234,6 +252,7 @@ export function KaraokeReader({ textUrl, videoRef }: Props) {
                       ? "text-muted-foreground/60 text-base line-clamp-1"
                       : "text-foreground/80 text-base hover:text-foreground hover:bg-secondary/40 line-clamp-1",
                 ].join(" ")}
+                title={`Click to seek to ${formatTime(l.time)}`}
               >
                 {l.text}
               </button>

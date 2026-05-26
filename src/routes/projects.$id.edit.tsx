@@ -139,6 +139,7 @@ function EditProject() {
             onChange={(e) => setDescription(e.target.value)}
             rows={6}
             maxLength={4000}
+            placeholder="Roles, tone, character notes, deadline…"
             className="w-full bg-input border border-border rounded-lg px-3 py-2 outline-none focus:border-primary resize-y"
           />
         </Field>
@@ -286,16 +287,23 @@ function FileSlot({
             </button>
           </div>
         ) : existing ? (
-          <div className="bg-input border border-border rounded-lg px-3 py-2.5 flex items-center justify-between text-sm">
-            <span className="truncate text-muted-foreground">{existing}</span>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] small-caps text-muted-foreground">Upload to replace</span>
+          <div className="bg-input border border-border rounded-lg px-3 py-2.5 relative cursor-pointer group hover:border-primary/50 transition">
+            <div className="flex items-center justify-between">
+              <span className="truncate text-muted-foreground text-sm">{existing}</span>
               {onClearExisting && (
-                <button type="button" onClick={onClearExisting} className="text-muted-foreground hover:text-destructive" title="Remove">
+                <button 
+                  type="button" 
+                  onClick={(e) => { e.stopPropagation(); onClearExisting(); }}
+                  className="text-muted-foreground hover:text-destructive" 
+                  title="Remove"
+                >
                   <X className="h-4 w-4" />
                 </button>
               )}
             </div>
+            <p className="text-[10px] small-caps text-muted-foreground mt-1 group-hover:text-primary transition">
+              Click or drag to replace
+            </p>
             <input
               type="file"
               accept={accept}
@@ -304,13 +312,13 @@ function FileSlot({
             />
           </div>
         ) : (
-          <div className="bg-input border border-dashed border-border rounded-lg px-3 py-2.5 flex items-center gap-2 text-sm text-muted-foreground hover:border-primary transition cursor-pointer">
-            <Upload className="h-4 w-4" /> Upload file
+          <div className="relative bg-input border border-dashed border-border rounded-lg px-3 py-2.5 flex items-center gap-2 text-sm text-muted-foreground hover:border-primary hover:text-foreground transition cursor-pointer group">
+            <Upload className="h-4 w-4 group-hover:text-primary" /> Upload file
             <input
               type="file"
               accept={accept}
               onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-              className="absolute inset-0 opacity-0 cursor-pointer"
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
             />
           </div>
         )}
