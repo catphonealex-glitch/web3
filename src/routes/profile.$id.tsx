@@ -50,10 +50,9 @@ function ProfilePage() {
     const { data: viewerRolesRaw } = await supabase
       .from("user_roles")
       .select("role_name")
-      .eq("user_id", user?.id)
-      .maybeSingle();
+      .eq("user_id", user?.id);
 
-    const viewerRoles = user ? ((viewerRolesRaw ? [viewerRolesRaw] : []) as any[]).map((r) => r.role_name) : [];
+    const viewerRoles = user && viewerRolesRaw ? viewerRolesRaw.map((r: any) => r.role_name) : [];
 
     const viewerIsPrivileged = user && (viewerRoles.includes("admin") || viewerRoles.includes("moderator"));
 

@@ -34,34 +34,40 @@ function EditProject() {
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
-    supabase.from("tags").select("name, slug").order("name").limit(60).then(({ data }) => {
+    const fetchTags = async () => {
+      const { data } = await supabase.from("tags").select("name, slug").order("name").limit(60);
       setExistingTags((data as { name: string; slug: string }[]) || []);
-    });
+    };
+    fetchTags();
   }, []);
 
   useEffect(() => {
-    (async () => {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*, project_tags(tags(name))")
-        .eq("id", id)
-        .maybeSingle();
-      if (error || !data) {
-        toast.error("Project not found");
-        navigate({ to: "/" });
-        return;
+    const loadProject = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("projects")
+          .select("*, project_tags(tags(name))")
+          .eq("id", id)
+          .maybeSingle();
+
+        if (error || !data) {
+          toast.error("Project not found");
+          navigate({ to: "/" });
+          return;
+        }
+
+        setAuthorId(data.author_id);
+        setTitle(data.title);
+        setDescription(data.description ?? "");
+        setStatus((data.status as "open" | "closed") ?? "open");
+        setMediaUrl(data.media_url);
+        setTextUrl(data.text_url);
+        setTags((data.project_tags as { tags: { name: string } }[] | null)?.map((pt) => pt.tags.name) ?? []);
+      } finally {
+        setLoading(false);
       }
-      setAuthorId(data.author_id);
-      setTitle(data.title);
-      setDescription(data.description ?? "");
-      setStatus((data.status as "open" | "closed") ?? "open");
-      setMediaUrl(data.media_url);
-      setTextUrl(data.text_url);
-      setTags(
-        (data.project_tags as { tags: { name: string } }[] | null)?.map((pt) => pt.tags.name) ?? [],
-      );
-      setLoading(false);
-    })();
+    };
+    loadProject();
   }, [id, navigate]);
 
   useEffect(() => {
