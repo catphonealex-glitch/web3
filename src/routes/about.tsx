@@ -17,9 +17,9 @@ export const Route = createFileRoute("/about")({
 function AboutPage() {
   const { t } = useI18n();
   return (
-    <main className="max-w-3xl mx-auto px-4 py-12">
+    <main className="max-w-3xl mx-auto px-4 py-10 sm:py-12">
       <p className="small-caps text-xs text-muted-foreground">{t("about.kicker")}</p>
-      <h1 className="font-display text-5xl mt-1">{t("about.title")}</h1>
+      <h1 className="font-display text-3xl sm:text-5xl mt-1">{t("about.title")}</h1>
       <div className="rule-double mt-3 mb-8 w-32" />
 
       <section className="paper rounded-sm p-8 space-y-5 text-muted-foreground leading-relaxed">
@@ -53,10 +53,10 @@ function AboutPage() {
 
 function Pillar({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
   return (
-    <div className="paper rounded-sm p-5">
+    <div className="paper rounded-sm p-4 sm:p-5">
       <div className="h-9 w-9 rounded-lg bg-cta flex items-center justify-center text-primary-foreground mb-3 shadow-neon">{icon}</div>
-      <h3 className="font-display text-xl mb-1">{title}</h3>
-      <p className="text-sm text-muted-foreground">{body}</p>
+      <h3 className="font-display text-lg sm:text-xl mb-1">{title}</h3>
+      <p className="text-xs sm:text-sm text-muted-foreground">{body}</p>
     </div>
   );
 }

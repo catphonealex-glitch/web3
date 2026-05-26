@@ -22,6 +22,7 @@ interface Project {
   media_url: string | null;
   text_url: string | null;
   author_id: string;
+  hidden?: boolean;
   profiles: { display_name: string; avatar_url: string | null } | null;
   project_tags: { tags: { name: string; slug: string } }[];
 }
@@ -45,7 +46,7 @@ interface Application {
 
 function ProjectPage() {
   const { id } = Route.useParams();
-  const { user, isStaff } = useAuth();
+  const { user, profile, isStaff } = useAuth();
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -67,25 +68,42 @@ function ProjectPage() {
       .select("*, profiles(display_name, avatar_url), project_tags(tags(name, slug))")
       .eq("id", id)
       .maybeSingle();
+    
+    if (!data) {
+      setProject(null);
+      setLoading(false);
+      return;
+    }
+
+    // Check if current user can see this project
+    const viewerIsOwner = user?.id === data.author_id;
+    const viewerIsStaff = isStaff;
+    
+    if (data.hidden && !viewerIsOwner && !viewerIsStaff) {
+      setProject(null);
+      setLoading(false);
+      return;
+    }
+
     setProject(data as unknown as Project);
+
     const { data: cs } = await supabase
       .from("comments")
-      .select("*, profiles(display_name)")
+      .select("*, profiles(display_name, hidden)")
       .eq("project_id", id)
       .order("created_at", { ascending: true });
 
-    const canSeeHiddenComments = isStaff;
+    const canSeeHiddenContent = user && (isStaff || viewerIsOwner);
     setComments(
       ((cs as unknown as Comment[]) || []).filter(
-        (c: any) => !c.profiles?.hidden || canSeeHiddenComments,
+        (c: any) => !c.profiles?.hidden || canSeeHiddenContent,
       ),
     );
-
 
     if (user) {
       const { data: as } = await supabase
         .from("applications")
-        .select("*, profiles(display_name)")
+        .select("*, profiles(display_name, hidden)")
         .eq("project_id", id)
         .order("created_at", { ascending: false });
       setApps((as as unknown as Application[]) || []);
@@ -93,11 +111,13 @@ function ProjectPage() {
     setLoading(false);
   };
 
+
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [id, user?.id]);
 
   const submitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return navigate({ to: "/auth" });
+    if (user && profile?.is_banned) return toast.error("You cannot comment because your account is banned");
     if (!body.trim()) return;
     const { error } = await supabase.from("comments").insert({ project_id: id, author_id: user.id, body: body.trim() });
     if (error) return toast.error(error.message);
@@ -115,6 +135,7 @@ function ProjectPage() {
   const submitApplication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return navigate({ to: "/auth" });
+    if (user && profile?.is_banned) return toast.error("You cannot submit auditions because your account is banned");
     if (!demoFile) return toast.error("Attach a voice demo");
     setBusy(true);
     try {
@@ -154,22 +175,34 @@ function ProjectPage() {
 
 
   if (loading) return <div className="max-w-4xl mx-auto p-10 text-muted-foreground">Loading…</div>;
-  if (!project) return <div className="max-w-4xl mx-auto p-10">Not found.</div>;
+  if (!project) return <div className="max-w-4xl mx-auto p-10 text-muted-foreground">Project not found or access denied.</div>;
 
-  const canEditProject = isStaff || (user && project && user.id === project.author_id);
+  const canEditProject = isOwner || (isStaff && !isOwner);
+  const canSeeProject = isOwner || isStaff || !project.hidden;
+
+  // If project is hidden and user can't see it, show access denied
+  if (project.hidden && !isOwner && !isStaff) {
+    return <div className="max-w-4xl mx-auto p-10 text-muted-foreground">Project not found or access denied.</div>;
+  }
+
 
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8">
       <Link to="/" className="text-xs text-muted-foreground hover:text-foreground small-caps">← All projects</Link>
 
-      <article className="mt-4 paper rounded-sm p-6 md:p-8">
-        <div className="flex items-start justify-between gap-3 mb-3">
+      <article className="mt-4 paper rounded-sm p-4 sm:p-6 md:p-8">
+        <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 flex-col-reverse sm:flex-row">
           <div>
-            <span className={`text-xs font-semibold small-caps px-2 py-0.5 rounded-full ${project.status === "open" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"}`}>
-              {project.status}
-            </span>
-            <h1 className="font-display text-3xl md:text-5xl mt-2 leading-tight">{project.title}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`text-xs font-semibold small-caps px-2 py-0.5 rounded-full ${project.status === "open" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"}`}>
+                {project.status}
+              </span>
+              {isStaff && project.hidden && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground small-caps">Hidden</span>
+              )}
+            </div>
+            <h1 className="font-display text-2xl sm:text-3xl md:text-5xl mt-2 leading-tight">{project.title}</h1>
             <div className="rule-double mt-3 mb-3" />
             <p className="text-xs text-muted-foreground small-caps">
               by{" "}
@@ -225,7 +258,7 @@ function ProjectPage() {
         <p className="whitespace-pre-wrap text-foreground/90 leading-relaxed">{project.description}</p>
 
         {project.media_url && (
-          <div className={`mt-5 grid gap-5 ${project.text_url ? "lg:grid-cols-[1.4fr_1fr] lg:items-stretch" : ""}`}>
+          <div className={`mt-5 grid grid-cols-1 gap-5 ${project.text_url ? "lg:grid-cols-[1.4fr_1fr] lg:items-stretch" : ""}`}>
             <div className="rounded-xl overflow-hidden bg-stage border border-border self-start">
               <video ref={videoRef} src={project.media_url} controls className="w-full max-h-[60vh]" />
             </div>
@@ -259,13 +292,13 @@ function ProjectPage() {
             <p className="text-sm text-muted-foreground">Submit your voice demo for the director.</p>
             <label className="block">
               <span className="sr-only">Upload voice demo</span>
-              <div className="flex items-center gap-3">
-                <Upload className="h-4 w-4 text-primary" />
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+                <Upload className="h-4 w-4 text-primary shrink-0 mt-1 sm:mt-0" />
                 <input
                   type="file"
                   accept="audio/*,video/*"
                   onChange={(e) => setDemoFile(e.target.files?.[0] ?? null)}
-                  className="flex-1 text-sm file:mr-3 file:py-2 file:px-3 file:rounded-lg file:bg-cta file:text-primary-foreground file:border-0 file:font-medium"
+                  className="flex-1 text-sm file:mr-2 sm:file:mr-3 file:py-2 file:px-3 file:rounded-lg file:bg-cta file:text-primary-foreground file:border-0 file:font-medium"
                 />
               </div>
             </label>
@@ -277,7 +310,7 @@ function ProjectPage() {
               rows={3}
               className="w-full bg-input border border-border rounded-lg px-3 py-2 outline-none focus:border-primary"
             />
-            <button disabled={busy} className="px-4 py-2 rounded-lg bg-cta text-primary-foreground font-medium disabled:opacity-50">
+            <button type="submit" disabled={busy} className="px-4 py-2 rounded-lg bg-cta text-primary-foreground font-medium disabled:opacity-50">
               {busy ? "Uploading…" : "Submit audition"}
             </button>
           </form>
@@ -288,9 +321,14 @@ function ProjectPage() {
             {apps.map((a) => (
               <div key={a.id} className="paper rounded-sm p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <Link to="/profile/$id" params={{ id: a.applicant_id }} className="font-medium hover:text-primary">
-                    {a.profiles?.display_name}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link to="/profile/$id" params={{ id: a.applicant_id }} className="font-medium hover:text-primary">
+                      {a.profiles?.display_name}
+                    </Link>
+                    {isStaff && a.profiles?.hidden && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground small-caps">Hidden</span>
+                    )}
+                  </div>
                   <span className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString()}</span>
                 </div>
                 {a.note && <p className="text-sm text-muted-foreground mb-2">{a.note}</p>}
@@ -311,7 +349,7 @@ function ProjectPage() {
         <h2 className="font-display text-2xl mt-1">Comments ({comments.length})</h2>
         <div className="rule-double mt-2 mb-4" />
         {user ? (
-          <form onSubmit={submitComment} className="flex gap-2 mb-5">
+          <form onSubmit={submitComment} className="flex flex-col sm:flex-row gap-2 mb-5">
             <input
               value={body}
               onChange={(e) => setBody(e.target.value)}
@@ -319,7 +357,7 @@ function ProjectPage() {
               placeholder="Leave a comment…"
               className="flex-1 bg-input border border-border rounded-lg px-3 py-2 outline-none focus:border-primary"
             />
-            <button className="px-4 rounded-lg bg-cta text-primary-foreground"><Send className="h-4 w-4" /></button>
+            <button type="submit" className="px-4 rounded-lg bg-cta text-primary-foreground"><Send className="h-4 w-4" /></button>
           </form>
         ) : (
           <p className="text-sm text-muted-foreground mb-4"><Link to="/auth" className="text-primary hover:underline">Sign in</Link> to comment.</p>
@@ -329,9 +367,14 @@ function ProjectPage() {
           {comments.map((c) => (
             <div key={c.id} className="paper rounded-sm p-4">
               <div className="flex items-center justify-between mb-1">
-                <Link to="/profile/$id" params={{ id: c.author_id }} className="text-sm font-medium hover:text-primary">
-                  {c.profiles?.display_name}
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link to="/profile/$id" params={{ id: c.author_id }} className="text-sm font-medium hover:text-primary">
+                    {c.profiles?.display_name}
+                  </Link>
+                  {isStaff && c.profiles?.hidden && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground small-caps">Hidden</span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleString()}</span>
                   {(c.author_id === user?.id || isStaff) && (

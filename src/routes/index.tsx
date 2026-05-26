@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { ProjectCard } from "@/components/ProjectCard";
 import { useI18n } from "@/lib/i18n";
 import { Search, Sparkles, Mic2, Film, Users } from "lucide-react";
@@ -21,6 +22,7 @@ interface ProjectRow {
   created_at: string;
   media_url: string | null;
   author_id: string;
+  hidden?: boolean;
   profiles: { display_name: string } | null;
   project_tags: { tags: { name: string; slug: string } }[];
 }
@@ -43,6 +45,7 @@ function distance(a: string, b: string): number {
 
 function Index() {
   const { t } = useI18n();
+  const { isStaff } = useAuth();
   const { q, tag } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [search, setSearch] = useState(q);
@@ -66,11 +69,14 @@ function Index() {
       // Always fetch a working set; we'll filter client-side for tiered matching
       const { data } = await supabase
         .from("projects")
-        .select("id, title, description, status, created_at, media_url, author_id, profiles(display_name), project_tags(tags(name, slug))")
+        .select("id, title, description, status, created_at, media_url, author_id, hidden, profiles(display_name), project_tags(tags(name, slug))")
         .order("created_at", { ascending: false })
         .limit(200);
 
       let all = (data as unknown as ProjectRow[]) || [];
+      // Filter hidden projects - only show if user is staff
+      all = all.filter((p) => !p.hidden || isStaff);
+      
       if (tag) all = all.filter((p) => p.project_tags.some((pt) => pt.tags?.slug === tag));
 
       let list = all;
@@ -125,7 +131,7 @@ function Index() {
       setLoading(false);
     };
     load();
-  }, [q, tag]);
+  }, [q, tag, isStaff]);
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-10">
@@ -136,19 +142,19 @@ function Index() {
           <div className="small-caps text-xs text-primary font-semibold mb-3 flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5" /> {t("home.kicker")}
           </div>
-          <h1 className="font-display text-5xl md:text-7xl leading-[1.0] mb-2">
+          <h1 className="font-display text-3xl sm:text-5xl md:text-7xl leading-[1.0] mb-2">
             {t("home.title1")}
           </h1>
-          <h1 className="font-display font-serif-italic italic text-5xl md:text-7xl leading-[1.0] mb-5 text-gradient">
+          <h1 className="font-display font-serif-italic italic text-3xl sm:text-5xl md:text-7xl leading-[1.0] mb-5 text-gradient">
             {t("home.title2")}
           </h1>
           <div className="rule-double w-24 mb-5" />
-          <p className="text-muted-foreground text-lg mb-6 max-w-lg leading-relaxed">
+          <p className="text-muted-foreground text-base sm:text-lg mb-6 max-w-lg leading-relaxed">
             {t("home.lead")}
           </p>
           <form
             onSubmit={(e) => { e.preventDefault(); navigate({ search: { q: search, tag } }); }}
-            className="flex gap-2"
+            className="flex flex-col sm:flex-row gap-2"
           >
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -159,7 +165,7 @@ function Index() {
                 className="w-full bg-card border border-border rounded-lg pl-10 pr-4 py-3 outline-none focus:border-primary transition"
               />
             </div>
-            <button className="px-5 py-3 rounded-lg bg-cta text-primary-foreground font-medium shadow-neon">{t("home.search")}</button>
+            <button className="px-5 py-3 rounded-lg bg-cta text-primary-foreground font-medium shadow-neon whitespace-nowrap">{t("home.search")}</button>
           </form>
         </div>
         <div className="relative grid grid-cols-3 gap-3 mt-8 max-w-md">
@@ -210,7 +216,7 @@ function Index() {
         )}
         {(!q || !matchMode) && <div className="mb-4" />}
         {loading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-44 rounded-2xl bg-card border border-border animate-pulse" />
             ))}
@@ -224,7 +230,7 @@ function Index() {
             </Link>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map((p) => (
               <ProjectCard
                 key={p.id}
@@ -252,7 +258,10 @@ function Index() {
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
     <div className="rounded-xl bg-card/60 backdrop-blur border border-border p-3">
-      <div className="text-muted-foreground flex items-center gap-1.5 text-xs mb-1">{icon}{label}</div>
+      <div className="text-muted-foreground flex items-center gap-1.5 text-xs mb-1 min-w-0">
+        {icon}
+        <span className="truncate" title={label}>{label}</span>
+      </div>
       <div className="text-2xl font-bold">{value}</div>
     </div>
   );

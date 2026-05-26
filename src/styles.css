@@ -40,36 +40,35 @@
 :root {
   --radius: 0.5rem;
 
-  /* Vintage editorial — aged paper, ink, oxblood, mustard, sage */
-  --background: oklch(0.94 0.02 85);          /* warm cream paper */
-  --foreground: oklch(0.22 0.03 40);          /* dark ink brown */
+  --background: oklch(0.94 0.02 85);
+  --foreground: oklch(0.22 0.03 40);
 
-  --card: oklch(0.97 0.015 85);               /* lighter paper */
+  --card: oklch(0.97 0.015 85);
   --card-foreground: oklch(0.22 0.03 40);
   --popover: oklch(0.97 0.015 85);
   --popover-foreground: oklch(0.22 0.03 40);
 
-  --primary: oklch(0.42 0.13 25);             /* oxblood / burgundy */
+  --primary: oklch(0.42 0.13 25);
   --primary-foreground: oklch(0.96 0.02 85);
 
-  --secondary: oklch(0.88 0.025 80);          /* tan */
+  --secondary: oklch(0.88 0.025 80);
   --secondary-foreground: oklch(0.28 0.04 40);
 
   --muted: oklch(0.9 0.02 80);
   --muted-foreground: oklch(0.45 0.03 50);
 
-  --accent: oklch(0.7 0.13 75);               /* mustard / ochre */
+  --accent: oklch(0.7 0.13 75);
   --accent-foreground: oklch(0.22 0.04 40);
 
   --destructive: oklch(0.5 0.18 28);
   --destructive-foreground: oklch(0.97 0.01 85);
 
-  --border: oklch(0.78 0.03 60 / 70%);        /* faded brown rule */
+  --border: oklch(0.78 0.03 60 / 70%);
   --input: oklch(0.92 0.02 80);
   --ring: oklch(0.42 0.13 25);
 
-  --stage: oklch(0.91 0.025 80);              /* parchment panel */
-  --neon: oklch(0.45 0.08 160);               /* sage/teal patina */
+  --stage: oklch(0.91 0.025 80);
+  --neon: oklch(0.45 0.08 160);
   --neon-foreground: oklch(0.97 0.02 85);
 
   --gradient-spotlight:
@@ -83,7 +82,6 @@
 }
 
 .dark {
-  /* Speakeasy — deep ink with brass accents */
   --background: oklch(0.18 0.02 50);
   --foreground: oklch(0.93 0.025 85);
   --card: oklch(0.22 0.025 50);
@@ -111,7 +109,6 @@
     font-family: var(--font-sans);
     background-image:
       var(--gradient-spotlight),
-      /* paper grain */
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.25  0 0 0 0 0.18  0 0 0 0 0.12  0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     background-attachment: fixed, fixed;
     background-size: auto, 320px 320px;
@@ -142,11 +139,9 @@
   }
   .font-display { font-family: var(--font-display); }
   .font-serif-italic { font-family: var(--font-display); font-style: italic; }
-  /* Decorative double rule, like an old masthead */
   .rule-double {
     border-top: 3px double var(--color-border);
   }
-  /* Subtle paper card with deckled feel */
   .paper {
     background:
       linear-gradient(180deg, oklch(0.98 0.012 85), oklch(0.95 0.02 85));

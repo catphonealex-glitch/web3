@@ -17,9 +17,9 @@ export const Route = createFileRoute("/guidelines")({
 function GuidelinesPage() {
   const { t } = useI18n();
   return (
-    <main className="max-w-3xl mx-auto px-4 py-12">
+    <main className="max-w-3xl mx-auto px-4 py-10 sm:py-12">
       <p className="small-caps text-xs text-muted-foreground">{t("gl.kicker")}</p>
-      <h1 className="font-display text-5xl mt-1">{t("gl.title")}</h1>
+      <h1 className="font-display text-3xl sm:text-5xl mt-1">{t("gl.title")}</h1>
       <div className="rule-double mt-3 mb-8 w-32" />
 
       <p className="text-muted-foreground leading-relaxed mb-8">{t("gl.intro")}</p>
@@ -84,9 +84,9 @@ function GuidelinesPage() {
 
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <section className="paper rounded-sm p-6 mb-4">
-      <h2 className="font-display text-2xl mb-3 flex items-center gap-2">{icon} {title}</h2>
-      <div className="text-muted-foreground leading-relaxed">{children}</div>
+    <section className="paper rounded-sm p-4 sm:p-6 mb-4">
+      <h2 className="font-display text-lg sm:text-2xl mb-3 flex items-center gap-2 flex-wrap">{icon} {title}</h2>
+      <div className="text-muted-foreground leading-relaxed text-sm sm:text-base">{children}</div>
     </section>
   );
 }

@@ -35,34 +35,40 @@ function EditProject() {
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
-    supabase.from("tags").select("name, slug").order("name").limit(60).then(({ data }) => {
+    const fetchTags = async () => {
+      const { data } = await supabase.from("tags").select("name, slug").order("name").limit(60);
       setExistingTags((data as { name: string; slug: string }[]) || []);
-    });
+    };
+    fetchTags();
   }, []);
 
   useEffect(() => {
-    (async () => {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*, project_tags(tags(name))")
-        .eq("id", id)
-        .maybeSingle();
-      if (error || !data) {
-        toast.error("Project not found");
-        navigate({ to: "/" });
-        return;
+    const loadProject = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("projects")
+          .select("*, project_tags(tags(name))")
+          .eq("id", id)
+          .maybeSingle();
+
+        if (error || !data) {
+          toast.error("Project not found");
+          navigate({ to: "/" });
+          return;
+        }
+
+        setAuthorId(data.author_id);
+        setTitle(data.title);
+        setDescription(data.description ?? "");
+        setStatus((data.status as "open" | "closed") ?? "open");
+        setMediaUrl(data.media_url);
+        setTextUrl(data.text_url);
+        setTags((data.project_tags as { tags: { name: string } }[] | null)?.map((pt) => pt.tags.name) ?? []);
+      } finally {
+        setLoading(false);
       }
-      setAuthorId(data.author_id);
-      setTitle(data.title);
-      setDescription(data.description ?? "");
-      setStatus((data.status as "open" | "closed") ?? "open");
-      setMediaUrl(data.media_url);
-      setTextUrl(data.text_url);
-      setTags(
-        (data.project_tags as { tags: { name: string } }[] | null)?.map((pt) => pt.tags.name) ?? [],
-      );
-      setLoading(false);
-    })();
+    };
+    loadProject();
   }, [id, navigate]);
 
   useEffect(() => {
@@ -129,7 +135,7 @@ function EditProject() {
       </div>
       <div className="rule-double mt-3 mb-6" />
 
-      <form onSubmit={submit} className="space-y-5 paper rounded-sm p-6">
+      <form onSubmit={submit} className="space-y-5 paper rounded-sm p-4 sm:p-6">
         <Field label="Title">
           <input
             value={title}
@@ -145,24 +151,26 @@ function EditProject() {
             onChange={(e) => setDescription(e.target.value)}
             rows={6}
             maxLength={4000}
+            placeholder="Roles, tone, character notes, deadline…"
             className="w-full bg-input border border-border rounded-lg px-3 py-2 outline-none focus:border-primary resize-y"
           />
         </Field>
 
         <Field label="Status">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {(["open", "closed"] as const).map((s) => (
               <button
                 type="button"
                 key={s}
                 onClick={() => setStatus(s)}
-                className={`py-2.5 rounded-lg border text-sm font-medium capitalize transition ${
+                className={`py-2.5 rounded-lg border text-xs sm:text-sm font-medium capitalize transition ${
                   status === s
                     ? "bg-cta text-primary-foreground border-transparent shadow-neon"
                     : "bg-input border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
                 }`}
               >
-                {s === "open" ? "Open — accepting auditions" : "Closed — preview only"}
+                <span className="hidden sm:inline">{s === "open" ? "Open — accepting auditions" : "Closed — preview only"}</span>
+                <span className="sm:hidden">{s === "open" ? "Open" : "Closed"}</span>
               </button>
             ))}
           </div>
@@ -250,7 +258,7 @@ function EditProject() {
           >
             Cancel
           </Link>
-          <button disabled={busy} className="flex-1 py-3 rounded-lg bg-cta text-primary-foreground font-medium shadow-neon disabled:opacity-50">
+          <button type="submit" disabled={busy} className="flex-1 py-3 rounded-lg bg-cta text-primary-foreground font-medium shadow-neon disabled:opacity-50">
             {busy ? "Saving…" : "Save changes"}
           </button>
         </div>
@@ -303,6 +311,9 @@ function FileSlot({
                 )}
               </div>
             </div>
+            <p className="text-[10px] small-caps text-muted-foreground mt-1 group-hover:text-primary transition">
+              Click or drag to replace
+            </p>
             <input
               type="file"
               accept={accept}
@@ -311,13 +322,13 @@ function FileSlot({
             />
           </div>
         ) : (
-          <div className="bg-input border border-dashed border-border rounded-lg px-3 py-2.5 flex items-center gap-2 text-sm text-muted-foreground hover:border-primary transition cursor-pointer">
-            <Upload className="h-4 w-4" /> Upload file
+          <div className="relative bg-input border border-dashed border-border rounded-lg px-3 py-2.5 flex items-center gap-2 text-sm text-muted-foreground hover:border-primary hover:text-foreground transition cursor-pointer group">
+            <Upload className="h-4 w-4 group-hover:text-primary" /> Upload file
             <input
               type="file"
               accept={accept}
               onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-              className="absolute inset-0 opacity-0 cursor-pointer"
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
             />
           </div>
         )}
