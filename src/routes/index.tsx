@@ -131,7 +131,7 @@ function Index() {
       setLoading(false);
     };
     load();
-  }, [q, tag]);
+  }, [q, tag, isStaff]);
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-10">
@@ -258,7 +258,10 @@ function Index() {
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
     <div className="rounded-xl bg-card/60 backdrop-blur border border-border p-3">
-      <div className="text-muted-foreground flex items-center gap-1.5 text-xs mb-1">{icon}{label}</div>
+      <div className="text-muted-foreground flex items-center gap-1.5 text-xs mb-1 min-w-0">
+        {icon}
+        <span className="truncate" title={label}>{label}</span>
+      </div>
       <div className="text-2xl font-bold">{value}</div>
     </div>
   );
