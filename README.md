@@ -2,7 +2,7 @@
 
 A community platform for amateur dubbing — where aspiring voice actors practice, audition for beginner-friendly projects, and build a portfolio to launch a career in dubbing.
 
-Built on **TanStack Start** (React 19 + Vite 7) with **Lovable Cloud** providing the database, authentication, file storage, and edge runtime.
+Built on **TanStack Start** (React 19 + Vite 7) with **Supabase** providing the database, authentication, file storage, and edge runtime.
 
 ---
 
@@ -22,7 +22,6 @@ Built on **TanStack Start** (React 19 + Vite 7) with **Lovable Cloud** providing
 8. [Design System](#design-system)
 9. [Local Development](#local-development)
 10. [Becoming an Admin](#becoming-an-admin)
-11. [Deployment](#deployment)
 
 ---
 
@@ -46,7 +45,7 @@ DubStage is an amateur dubbing community where:
 | Routing | TanStack Router (file-based, type-safe) |
 | Styling | Tailwind CSS v4 (via `src/styles.css` + design tokens) |
 | UI primitives | shadcn/ui |
-| Backend | Lovable Cloud (managed Supabase: Postgres + Auth + Storage + Edge Functions) |
+| Backend | Supabase: Postgres + Auth + Storage + Edge Functions) |
 | Auth | Email / password (with optional Google OAuth ready to enable) |
 | Server runtime | Cloudflare Workers (edge) |
 
@@ -242,12 +241,11 @@ bunx tsc --noEmit
 bun run build
 ```
 
-The `.env` file is auto-managed by Lovable Cloud and contains:
+The `.env` file contains:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
 - `VITE_SUPABASE_PROJECT_ID`
 
-Server-side secrets (`SUPABASE_SERVICE_ROLE_KEY`, `LOVABLE_API_KEY`, etc.) are managed in Cloud → Secrets and injected into edge functions automatically.
 
 ---
 
@@ -255,7 +253,7 @@ Server-side secrets (`SUPABASE_SERVICE_ROLE_KEY`, `LOVABLE_API_KEY`, etc.) are m
 
 After signing up, promote yourself by inserting into `user_roles`:
 
-1. Open **Cloud → Database → SQL Editor**.
+1. Open **SQL Editor**.
 2. Find your `user_id` (Cloud → Users).
 3. Run:
 
@@ -268,16 +266,6 @@ Reload the app — the **Admin** link appears in the header.
 
 ---
 
-## Deployment
-
-Click **Publish** in the Lovable editor (top-right on desktop, `…` menu on mobile). The app deploys to a Cloudflare Worker behind a stable URL:
-
-- Production: `project--<project-id>.lovable.app`
-- Preview: `project--<project-id>-dev.lovable.app`
-
-Custom domains can be attached from **Project Settings → Domains**.
-
----
 
 ## License
 
