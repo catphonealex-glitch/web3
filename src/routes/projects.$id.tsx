@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -280,6 +280,8 @@ function ProjectPage() {
           </a>
         )}
       </article>
+
+      <Outlet />
 
       {/* AUDITIONS */}
       <section className="mt-10">
