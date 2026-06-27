@@ -305,7 +305,7 @@ function FileSlot({
               <div className="flex items-center gap-2">
                 <span className="text-[10px] small-caps text-muted-foreground">Upload to replace</span>
                 {onClearExisting && (
-                  <button type="button" onClick={(e) => { e.stopPropagation(); onClearExisting(); }} className="text-muted-foreground hover:text-destructive" title="Remove">
+                  <button type="button" onClick={(e) => { e.stopPropagation(); onClearExisting(); }} className="relative z-10 text-muted-foreground hover:text-destructive" title="Remove">
                     <X className="h-4 w-4" />
                   </button>
                 )}
@@ -318,7 +318,7 @@ function FileSlot({
               type="file"
               accept={accept}
               onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-              className="absolute inset-0 opacity-0 cursor-pointer"
+              className="absolute inset-0 opacity-0 cursor-pointer z-0"
             />
           </div>
         ) : (
